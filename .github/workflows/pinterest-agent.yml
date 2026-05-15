@@ -1,0 +1,48 @@
+# Pinterest → AliExpress Daily Agent
+# Runs once daily at Pakistan-morning start | Sends all 5 products with SEO content
+# =================================================================
+name: Pinterest Daily Agent
+
+on:
+  schedule:
+    # Run once daily at Pakistan morning (6:00 AM PKT = 1:00 AM UTC = 8:00 PM EST previous day)
+    # Using 1:30 UTC to ensure morning time in Pakistan
+    - cron: '30 1 * * *'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Run mode: all, test'
+        required: true
+        default: 'all'
+
+jobs:
+  run-agent:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Display time info
+        run: |
+          echo "📅 Date: $(TZ='Asia/Karachi' date '+%Y-%m-%d')"
+          echo "⏰ Pakistan (PKT): $(TZ='Asia/Karachi' date '+%H:%M')"
+          echo "⏰ US Eastern (EST): $(TZ='America/New_York' date '+%H:%M')"
+          echo "⏰ UTC: $(date -u '+%H:%M')"
+
+      - name: Run Pinterest Agent
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+        run: |
+          # Check if secrets are set
+          if [ -z "$TELEGRAM_TOKEN" ] || [ -z "$CHAT_ID" ]; then
+            echo "❌ Missing secrets! Please set TELEGRAM_TOKEN and CHAT_ID in repo settings."
+            exit 1
+          fi
+          
+          echo "🚀 Starting Pinterest Agent..."
+          python3 gh_agent.py
+          
+      - name: Confirm completion
+        if: success()
+        run: echo "✅ All messages sent successfully!"
