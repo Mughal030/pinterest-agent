@@ -26,15 +26,13 @@ def get_times():
     now = datetime.now()
     return now.strftime("%I:%M %p"), (now + timedelta(hours=5)).strftime("%I:%M %p")
 
-# Search link - more reliable
-# Also include product ID for manual search
+# Direct product link with US shipping parameter
 def get_link(p):
     pid = p["id"]
-    name = p["name"].lower().replace(" ", "+")
-    return f"https://www.aliexpress.com/wholesale/{name}.html"
+    return f"https://www.aliexpress.com/item/{pid}.html?gatewayAdapt=glo2usa"
 
 def get_product_url(pid):
-    return f"https://www.aliexpress.com/item/{pid}.html"
+    return f"https://www.aliexpress.com/item/{pid}.html?gatewayAdapt=glo2usa"
 
 def select_products():
     date_str = get_date() + get_day()
@@ -58,11 +56,11 @@ def send(text):
 
 def build_summary(products):
     us, pk = get_times()
-    lines = [f"🌅 GOOD MORNING! 📅 {get_date()} | {get_day().title()}", f"⏰ Time: 🇺🇸 {us} US | 🇵🇰 {pk} Pakistan", f"", f"📊 TODAY'S TRENDING PRODUCTS", f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"]
+    lines = [f"🌅 GOOD MORNING! 📅 {get_date()} | {get_day().title()}", f"⏰ Time: 🇺🇸 {us} US | 🇵🇰 {pk} Pakistan", f"🌍 GLOBAL SHIPPING AVAILABLE", f"", f"📊 TODAY'S TRENDING PRODUCTS", f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"]
     for i, p in enumerate(products, 1):
         cat = "FEMALE" if i <= 3 else "GENERAL"
         lines.append(f"👗 #{i} {cat} | {p['name']}")
-        lines.append(f"(SEARCH LINK): {get_link(p)} | ID: {p['id']}")
+        lines.append(f"🛒 {get_link(p)}")
     return "\n".join(lines)
 
 def build_detail(p, idx):
@@ -71,7 +69,7 @@ def build_detail(p, idx):
     cats = ["FEMALE", "FEMALE", "FEMALE", "GENERAL", "GENERAL"]
     lines = [f"{get_date()} | {cats[idx]}", f"PRODUCT #{idx+1}", f"👑 POST AT: {times[idx]} US | 7 hours Pakistan", f"", f"━━━"*12, f"TREND: {p['name']}", f"", f"👑 SEO PIN TITLE:", f"{p['name']} - Pinterest Viral Fashion Style", f"SEO DESCRIPTION:", f"TRENDING {p['name']} on Pinterest! {p['analysis']} Perfect for viral pins!", f"", f"FEMINIST ANALYSIS:", f"{p['analysis']}", f"", f"# 10 SEO HASHTAGS:"]
     for i, tag in enumerate(p['tags'], 1): lines.append(f"{i}. #{tag}")
-    lines += [f"", f"📌 PRICE: {p['price']}", f"RATING: {p['rating']} {p['reviews']}", f"SHIPPING: FREE US Shipping", f"VERIFIED: Ships to USA ✔️", f"", f"🔗 SEARCH ON ALIEXPRESS:", f"{get_link(p)}", f"📦 OR use Product ID: {p['id']}", f"(Search this ID in AliExpress app)"]
+    lines += [f"", f"📌 PRICE: {p['price']}", f"RATING: {p['rating']} {p['reviews']}", f"SHIPPING: FREE US Shipping", f"🌍 GLOBAL SHIPPING ✓", f"", f"🛒 CLICK TO BUY:", f"{get_link(p)}"]
     return "\n".join(lines)
 
 def main():
