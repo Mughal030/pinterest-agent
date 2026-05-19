@@ -1,13 +1,33 @@
 #!/usr/bin/env python3
 """
-Pinterest → AliExpress Agent v9
-Using search links (more reliable)
+Pinterest → AliExpress Agent v12
+Using Nvidia NIM API for advanced AI analysis
 """
-import os, json, subprocess, random, hashlib
+import os, json, subprocess, random, hashlib, requests
 from datetime import datetime, timedelta
 
 TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
 CHAT_ID = os.environ.get("CHAT_ID", "")
+NVIDIA_API_KEY = os.environ.get("NVIDIA_API_KEY", "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")
+
+# Nvidia NIM API call for AI analysis
+def get_ai_analysis(product_name):
+    if not NVIDIA_API_KEY:
+        return "Trendy and essential."
+    try:
+        url = "https://integrate.api.nvidia.com/v1/chat/completions"
+        headers = {"Authorization": f"Bearer {NVIDIA_API_KEY}", "Content-Type": "application/json"}
+        data = {
+            "model": "mistralai/mixtral-8x7b-instruct-v0.1",
+            "messages": [{"role": "user", "content": f"Write a short feminist fashion analysis for product: {product_name}. Focus on empowerment, style, and confidence. Keep under 20 words."}],
+            "max_tokens": 100
+        }
+        resp = requests.post(url, headers=headers, json=data, timeout=15)
+        if resp.status_code == 200:
+            return resp.json()["choices"][0]["message"]["content"][:100]
+    except:
+        pass
+    return "Trendy and essential."
 
 FEMALE_PRODUCTS = [
     {"id": "1005005654900370", "name": "Oversized Hoodie Women", "price": "$19.99", "rating": "4.6★", "reviews": "(4,100 reviews)", "tags": ["WomenFashion", "PinterestViral", "Trend2026", "FashionTrends", "StyleInspo", "WomenStyle", "ViralFashion", "TrendyOutfit", "FashionTips", "Hoodie"], "analysis": "Comfortable chic."},
@@ -68,7 +88,9 @@ def build_detail(p, idx):
     us, pk = get_times()
     times = ["6:45 AM", "9:45 AM", "11:45 AM", "2:45 PM", "6:45 PM"]
     cats = ["FEMALE", "FEMALE", "FEMALE", "GENERAL", "GENERAL"]
-    lines = [f"{get_date()} | {cats[idx]}", f"PRODUCT #{idx+1}", f"👑 POST AT: {times[idx]} US | 7 hours Pakistan", f"", f"━━━"*12, f"TREND: {p['name']}", f"", f"👑 SEO PIN TITLE:", f"{p['name']} - Pinterest Viral Fashion Style", f"SEO DESCRIPTION:", f"TRENDING {p['name']} on Pinterest! {p['analysis']} Perfect for viral pins!", f"", f"FEMINIST ANALYSIS:", f"{p['analysis']}", f"", f"# 10 SEO HASHTAGS:"]
+    # Get AI-powered analysis
+    ai_analysis = get_ai_analysis(p['name'])
+    lines = [f"{get_date()} | {cats[idx]}", f"PRODUCT #{idx+1}", f"👑 POST AT: {times[idx]} US | 7 hours Pakistan", f"🤖 AI Powered", f"", f"━━━"*12, f"TREND: {p['name']}", f"", f"👑 SEO PIN TITLE:", f"{p['name']} - Pinterest Viral Fashion Style", f"SEO DESCRIPTION:", f"TRENDING {p['name']} on Pinterest! {ai_analysis} Perfect for viral pins!", f"", f"FEMINIST ANALYSIS:", f"{ai_analysis}", f"", f"# 10 SEO HASHTAGS:"]
     for i, tag in enumerate(p['tags'], 1): lines.append(f"{i}. #{tag}")
     lines += [f"", f"📌 PRICE: {p['price']}", f"RATING: {p['rating']} {p['reviews']}", f"SHIPPING: FREE SHIPPING", f"🌍 WORLDWIDE DELIVERY ✓", f"", f"🔍 SEARCH ON ALIEXPRESS:", f"{get_link(p)}", f"(Tap to search & find available sellers)"]
     return "\n".join(lines)
