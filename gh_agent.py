@@ -46,14 +46,15 @@ def get_times():
     now = datetime.now()
     return now.strftime("%I:%M %p"), (now + timedelta(hours=5)).strftime("%I:%M %p")
 
-# Search link - products may be removed, use search instead
+# Search link - use .us/w format for working links
 def get_link(p):
     name = p["name"].lower().replace(" ", "-")
-    return f"https://www.aliexpress.com/wholesale/{name}.html"
+    # Map product names to categories
+    cat = "women-hoodies" if "hoodie" in name else "women-blazers" if "blazer" in name else "women-jeans" if "jeans" in name else "women-tote-bags" if "tote" in name or "bag" in name else "phone-case"
+    return f"https://www.aliexpress.us/w/wholesale-{cat}.html"
 
 def get_product_url(pid):
-    name = p["name"].lower().replace(" ", "-")
-    return f"https://www.aliexpress.com/wholesale/{name}.html"
+    return f"https://www.aliexpress.us/item/{pid}.html"
 
 def select_products():
     date_str = get_date() + get_day()
