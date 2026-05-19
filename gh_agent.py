@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Pinterest → AliExpress Agent v6
-ONLY verified working product links
+Pinterest → AliExpress Agent v7
+Using direct AliExpress.com links (not US version)
 """
 import os, json, subprocess, random, hashlib
 from datetime import datetime, timedelta
@@ -9,14 +9,11 @@ from datetime import datetime, timedelta
 TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
 CHAT_ID = os.environ.get("CHAT_ID", "")
 
-# ==================== ONLY VERIFIED WORKING PRODUCTS ====================
-# Only using product IDs that are confirmed to work
-
+# ==================== PRODUCTS WITH DIRECT LINKS ====================
 FEMALE_PRODUCTS = [
     {"id": "1005005654900370", "name": "Oversized Hoodie Women", "price": "$19.99", "rating": "4.6★", "reviews": "(4,100 reviews)", "tags": ["WomenFashion", "PinterestViral", "Trend2026", "FashionTrends", "StyleInspo", "WomenStyle", "ViralFashion", "TrendyOutfit", "FashionTips", "Hoodie"], "analysis": "Comfortable chic."},
     {"id": "1005005451745185", "name": "Women Blazer Oversized", "price": "$32.99", "rating": "4.7★", "reviews": "(1,800 reviews)", "tags": ["WomenFashion", "PinterestViral", "Trend2026", "FashionTrends", "StyleInspo", "WomenStyle", "ViralFashion", "TrendyOutfit", "FashionTips", "Blazer"], "analysis": "Power dressing on YOUR terms."},
     {"id": "1005005210018416", "name": "High Waist Jeans Women", "price": "$24.99", "rating": "4.7★", "reviews": "(5,200 reviews)", "tags": ["WomenFashion", "PinterestViral", "Trend2026", "FashionTrends", "StyleInspo", "WomenStyle", "ViralFashion", "TrendyOutfit", "FashionTips", "Jeans"], "analysis": "Classic meets modern."},
-    {"id": "1005004102354501", "name": "Bodycon Dress Long Sleeve", "price": "$15.99", "rating": "4.5★", "reviews": "(3,100 reviews)", "tags": ["WomenFashion", "PinterestViral", "Trend2026", "FashionTrends", "StyleInspo", "WomenStyle", "ViralFashion", "TrendyOutfit", "FashionTips", "Dress"], "analysis": "Versatile for day to night."},
 ]
 
 GENERAL_PRODUCTS = [
@@ -30,8 +27,9 @@ def get_times():
     now = datetime.now()
     return now.strftime("%I:%M %p"), (now + timedelta(hours=5)).strftime("%I:%M %p")
 
+# Using direct aliexpress.com links
 def get_link(pid):
-    return f"https://www.aliexpress.us/item/{pid}.html"
+    return f"https://www.aliexpress.com/item/{pid}.html"
 
 def select_products():
     date_str = get_date() + get_day()
@@ -61,7 +59,7 @@ def build_summary(products):
         f"🌅 GOOD MORNING! 📅 {get_date()} | {get_day().title()}",
         f"⏰ Time: 🇺🇸 {us} US | 🇵🇰 {pk} Pakistan",
         f"",
-        f"📊 TODAY'S TRENDING PRODUCTS (Verified Links)",
+        f"📊 TODAY'S TRENDING PRODUCTS",
         f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
     ]
     
@@ -117,9 +115,6 @@ def build_detail(p, idx):
 
 def main():
     print(f"🕐 Agent - {get_date()} | {get_day().title()}")
-    us, pk = get_times()
-    print(f"⏰ US: {us} | PK: {pk}")
-    
     products = select_products()
     print(f"📦 {[p['name'] for p in products]}")
     
