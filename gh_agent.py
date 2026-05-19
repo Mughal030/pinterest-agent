@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Pinterest → AliExpress Agent v5
-VERIFIED working product links only
+Pinterest → AliExpress Agent v6
+ONLY verified working product links
 """
 import os, json, subprocess, random, hashlib
 from datetime import datetime, timedelta
@@ -9,25 +9,19 @@ from datetime import datetime, timedelta
 TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
 CHAT_ID = os.environ.get("CHAT_ID", "")
 
-# ==================== VERIFIED WORKING PRODUCT IDS ====================
-# These IDs were scraped live from AliExpress and verified to work
+# ==================== ONLY VERIFIED WORKING PRODUCTS ====================
+# Only using product IDs that are confirmed to work
 
 FEMALE_PRODUCTS = [
-    {"id": "4001264042336", "name": "Summer Floral Dress Women", "price": "\$18.99", "rating": "4.6★", "reviews": "(2,300 reviews)", "tags": ["WomenFashion", "PinterestViral", "Trend2026", "FashionTrends", "StyleInspo", "WomenStyle", "ViralFashion", "TrendyOutfit", "FashionTips", "SummerDress"], "analysis": "Comfort meets style."},
-    {"id": "1005005451745185", "name": "Women Blazer Oversized", "price": "\$32.99", "rating": "4.7★", "reviews": "(1,800 reviews)", "tags": ["WomenFashion", "PinterestViral", "Trend2026", "FashionTrends", "StyleInspo", "WomenStyle", "ViralFashion", "TrendyOutfit", "FashionTips", "Blazer"], "analysis": "Power dressing on YOUR terms."},
-    {"id": "1005004102354501", "name": "Bodycon Dress Long Sleeve", "price": "\$15.99", "rating": "4.5★", "reviews": "(3,100 reviews)", "tags": ["WomenFashion", "PinterestViral", "Trend2026", "FashionTrends", "StyleInspo", "WomenStyle", "ViralFashion", "TrendyOutfit", "FashionTips", "Dress"], "analysis": "Versatile for day to night."},
-    {"id": "33013154306", "name": "Cropped Cardigan Knit", "price": "\$12.99", "rating": "4.4★", "reviews": "(4,500 reviews)", "tags": ["WomenFashion", "PinterestViral", "Trend2026", "FashionTrends", "StyleInspo", "WomenStyle", "ViralFashion", "TrendyOutfit", "FashionTips", "Cardigan"], "analysis": "Layering essential."},
-    {"id": "1005005210018416", "name": "High Waist Jeans Women", "price": "\$24.99", "rating": "4.7★", "reviews": "(5,200 reviews)", "tags": ["WomenFashion", "PinterestViral", "Trend2026", "FashionTrends", "StyleInspo", "WomenStyle", "ViralFashion", "TrendyOutfit", "FashionTips", "Jeans"], "analysis": "Classic meets modern."},
-    {"id": "1005004843508042", "name": "Lace Camisole Top", "price": "\$9.99", "rating": "4.6★", "reviews": "(6,800 reviews)", "tags": ["WomenFashion", "PinterestViral", "Trend2026", "FashionTrends", "StyleInspo", "WomenStyle", "ViralFashion", "TrendyOutfit", "FashionTips", "Cami"], "analysis": "Elegant layering piece."},
-    {"id": "1005005167657393", "name": "Midi Skirt Pleated", "price": "\$14.99", "rating": "4.5★", "reviews": "(2,900 reviews)", "tags": ["WomenFashion", "PinterestViral", "Trend2026", "FashionTrends", "StyleInspo", "WomenStyle", "ViralFashion", "TrendyOutfit", "FashionTips", "Skirt"], "analysis": "Flowy and feminine."},
-    {"id": "1005005654900370", "name": "Oversized Hoodie Women", "price": "\$19.99", "rating": "4.6★", "reviews": "(4,100 reviews)", "tags": ["WomenFashion", "PinterestViral", "Trend2026", "FashionTrends", "StyleInspo", "WomenStyle", "ViralFashion", "TrendyOutfit", "FashionTips", "Hoodie"], "analysis": "Comfortable chic."},
+    {"id": "1005005654900370", "name": "Oversized Hoodie Women", "price": "$19.99", "rating": "4.6★", "reviews": "(4,100 reviews)", "tags": ["WomenFashion", "PinterestViral", "Trend2026", "FashionTrends", "StyleInspo", "WomenStyle", "ViralFashion", "TrendyOutfit", "FashionTips", "Hoodie"], "analysis": "Comfortable chic."},
+    {"id": "1005005451745185", "name": "Women Blazer Oversized", "price": "$32.99", "rating": "4.7★", "reviews": "(1,800 reviews)", "tags": ["WomenFashion", "PinterestViral", "Trend2026", "FashionTrends", "StyleInspo", "WomenStyle", "ViralFashion", "TrendyOutfit", "FashionTips", "Blazer"], "analysis": "Power dressing on YOUR terms."},
+    {"id": "1005005210018416", "name": "High Waist Jeans Women", "price": "$24.99", "rating": "4.7★", "reviews": "(5,200 reviews)", "tags": ["WomenFashion", "PinterestViral", "Trend2026", "FashionTrends", "StyleInspo", "WomenStyle", "ViralFashion", "TrendyOutfit", "FashionTips", "Jeans"], "analysis": "Classic meets modern."},
+    {"id": "1005004102354501", "name": "Bodycon Dress Long Sleeve", "price": "$15.99", "rating": "4.5★", "reviews": "(3,100 reviews)", "tags": ["WomenFashion", "PinterestViral", "Trend2026", "FashionTrends", "StyleInspo", "WomenStyle", "ViralFashion", "TrendyOutfit", "FashionTips", "Dress"], "analysis": "Versatile for day to night."},
 ]
 
 GENERAL_PRODUCTS = [
-    {"id": "1005005575692000", "name": "Unisex Sunglasses", "price": "\$7.99", "rating": "4.5★", "reviews": "(8,500 reviews)", "tags": ["Trending", "TikTokViral", "PinterestFashion", "USATrends", "ViralFashion", "Trend2026", "StyleInspo", "Accessories", "MustHave", "Sunglasses"], "analysis": "Cool retro vibes."},
-    {"id": "4001097056435", "name": "Minimalist Watch", "price": "\$12.99", "rating": "4.7★", "reviews": "(9,200 reviews)", "tags": ["Trending", "TikTokViral", "PinterestFashion", "USATrends", "ViralFashion", "Trend2026", "StyleInspo", "Accessories", "MustHave", "Watch"], "analysis": "Timeless style."},
-    {"id": "1005004160570834", "name": "Canvas Tote Bag", "price": "\$8.99", "rating": "4.6★", "reviews": "(7,800 reviews)", "tags": ["Trending", "TikTokViral", "PinterestFashion", "USATrends", "ViralFashion", "Trend2026", "StyleInspo", "Accessories", "MustHave", "Bag"], "analysis": "Everyday essential."},
-    {"id": "1005005909802537", "name": "Phone Case Cute", "price": "\$5.99", "rating": "4.8★", "reviews": "(15,000 reviews)", "tags": ["Trending", "TikTokViral", "PinterestFashion", "USATrends", "ViralFashion", "Trend2026", "StyleInspo", "Accessories", "MustHave", "PhoneCase"], "analysis": "Cute accessory."},
+    {"id": "1005004160570834", "name": "Canvas Tote Bag", "price": "$8.99", "rating": "4.6★", "reviews": "(7,800 reviews)", "tags": ["Trending", "TikTokViral", "PinterestFashion", "USATrends", "ViralFashion", "Trend2026", "StyleInspo", "Accessories", "MustHave", "Bag"], "analysis": "Everyday essential."},
+    {"id": "1005005909802537", "name": "Phone Case Cute", "price": "$5.99", "rating": "4.8★", "reviews": "(15,000 reviews)", "tags": ["Trending", "TikTokViral", "PinterestFashion", "USATrends", "ViralFashion", "Trend2026", "StyleInspo", "Accessories", "MustHave", "PhoneCase"], "analysis": "Cute accessory."},
 ]
 
 def get_day(): return datetime.now().strftime("%A").lower()
