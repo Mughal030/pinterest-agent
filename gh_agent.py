@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Pinterest → AliExpress Agent v8
-Using gatewayAdapt=glo2usa for US shipping
+Pinterest → AliExpress Agent v9
+Using search links (more reliable)
 """
 import os, json, subprocess, random, hashlib
 from datetime import datetime, timedelta
@@ -26,9 +26,15 @@ def get_times():
     now = datetime.now()
     return now.strftime("%I:%M %p"), (now + timedelta(hours=5)).strftime("%I:%M %p")
 
-# Using gatewayAdapt for US
-def get_link(pid):
-    return f"https://www.aliexpress.com/item/{pid}.html?gatewayAdapt=glo2usa"
+# Search link - more reliable
+# Also include product ID for manual search
+def get_link(p):
+    pid = p["id"]
+    name = p["name"].lower().replace(" ", "+")
+    return f"https://www.aliexpress.com/wholesale/{name}.html"
+
+def get_product_url(pid):
+    return f"https://www.aliexpress.com/item/{pid}.html"
 
 def select_products():
     date_str = get_date() + get_day()
@@ -56,7 +62,7 @@ def build_summary(products):
     for i, p in enumerate(products, 1):
         cat = "FEMALE" if i <= 3 else "GENERAL"
         lines.append(f"👗 #{i} {cat} | {p['name']}")
-        lines.append(f"(PRODUCT LINK): {get_link(p['id'])}")
+        lines.append(f"(SEARCH LINK): {get_link(p)} | ID: {p['id']}")
     return "\n".join(lines)
 
 def build_detail(p, idx):
@@ -65,7 +71,7 @@ def build_detail(p, idx):
     cats = ["FEMALE", "FEMALE", "FEMALE", "GENERAL", "GENERAL"]
     lines = [f"{get_date()} | {cats[idx]}", f"PRODUCT #{idx+1}", f"👑 POST AT: {times[idx]} US | 7 hours Pakistan", f"", f"━━━"*12, f"TREND: {p['name']}", f"", f"👑 SEO PIN TITLE:", f"{p['name']} - Pinterest Viral Fashion Style", f"SEO DESCRIPTION:", f"TRENDING {p['name']} on Pinterest! {p['analysis']} Perfect for viral pins!", f"", f"FEMINIST ANALYSIS:", f"{p['analysis']}", f"", f"# 10 SEO HASHTAGS:"]
     for i, tag in enumerate(p['tags'], 1): lines.append(f"{i}. #{tag}")
-    lines += [f"", f"📌 PRICE: {p['price']}", f"RATING: {p['rating']} {p['reviews']}", f"SHIPPING: FREE US Shipping", f"VERIFIED: Ships to USA ✔️", f"", f"CLICK HERE TO BUY:", f"{get_link(p['id'])}"]
+    lines += [f"", f"📌 PRICE: {p['price']}", f"RATING: {p['rating']} {p['reviews']}", f"SHIPPING: FREE US Shipping", f"VERIFIED: Ships to USA ✔️", f"", f"🔗 SEARCH ON ALIEXPRESS:", f"{get_link(p)}", f"📦 OR use Product ID: {p['id']}", f"(Search this ID in AliExpress app)"]
     return "\n".join(lines)
 
 def main():
