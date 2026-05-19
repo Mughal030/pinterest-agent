@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Pinterest → AliExpress Agent v7
-Using direct AliExpress.com links (not US version)
+Pinterest → AliExpress Agent v8
+Using gatewayAdapt=glo2usa for US shipping
 """
 import os, json, subprocess, random, hashlib
 from datetime import datetime, timedelta
@@ -9,7 +9,6 @@ from datetime import datetime, timedelta
 TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
 CHAT_ID = os.environ.get("CHAT_ID", "")
 
-# ==================== PRODUCTS WITH DIRECT LINKS ====================
 FEMALE_PRODUCTS = [
     {"id": "1005005654900370", "name": "Oversized Hoodie Women", "price": "$19.99", "rating": "4.6★", "reviews": "(4,100 reviews)", "tags": ["WomenFashion", "PinterestViral", "Trend2026", "FashionTrends", "StyleInspo", "WomenStyle", "ViralFashion", "TrendyOutfit", "FashionTips", "Hoodie"], "analysis": "Comfortable chic."},
     {"id": "1005005451745185", "name": "Women Blazer Oversized", "price": "$32.99", "rating": "4.7★", "reviews": "(1,800 reviews)", "tags": ["WomenFashion", "PinterestViral", "Trend2026", "FashionTrends", "StyleInspo", "WomenStyle", "ViralFashion", "TrendyOutfit", "FashionTips", "Blazer"], "analysis": "Power dressing on YOUR terms."},
@@ -27,20 +26,18 @@ def get_times():
     now = datetime.now()
     return now.strftime("%I:%M %p"), (now + timedelta(hours=5)).strftime("%I:%M %p")
 
-# Using direct aliexpress.com links
+# Using gatewayAdapt for US
 def get_link(pid):
-    return f"https://www.aliexpress.com/item/{pid}.html"
+    return f"https://www.aliexpress.com/item/{pid}.html?gatewayAdapt=glo2usa"
 
 def select_products():
     date_str = get_date() + get_day()
     seed = int(hashlib.md5(date_str.encode()).hexdigest()[:8], 16)
     random.seed(seed)
-    
     female = FEMALE_PRODUCTS[:]
     general = GENERAL_PRODUCTS[:]
     random.shuffle(female)
     random.shuffle(general)
-    
     return female[:3] + general[:2]
 
 def send(text):
@@ -55,76 +52,31 @@ def send(text):
 
 def build_summary(products):
     us, pk = get_times()
-    lines = [
-        f"🌅 GOOD MORNING! 📅 {get_date()} | {get_day().title()}",
-        f"⏰ Time: 🇺🇸 {us} US | 🇵🇰 {pk} Pakistan",
-        f"",
-        f"📊 TODAY'S TRENDING PRODUCTS",
-        f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
-    ]
-    
+    lines = [f"🌅 GOOD MORNING! 📅 {get_date()} | {get_day().title()}", f"⏰ Time: 🇺🇸 {us} US | 🇵🇰 {pk} Pakistan", f"", f"📊 TODAY'S TRENDING PRODUCTS", f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"]
     for i, p in enumerate(products, 1):
         cat = "FEMALE" if i <= 3 else "GENERAL"
-        lines.append(f"")
         lines.append(f"👗 #{i} {cat} | {p['name']}")
-        lines.append(f"   (PRODUCT LINK): {get_link(p['id'])}")
-    
-    lines.append(f"")
-    lines.append(f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        lines.append(f"(PRODUCT LINK): {get_link(p['id'])}")
     return "\n".join(lines)
 
 def build_detail(p, idx):
     us, pk = get_times()
     times = ["6:45 AM", "9:45 AM", "11:45 AM", "2:45 PM", "6:45 PM"]
     cats = ["FEMALE", "FEMALE", "FEMALE", "GENERAL", "GENERAL"]
-    
-    lines = [
-        f"{get_date()} | {cats[idx]}",
-        f"PRODUCT #{idx+1}",
-        f"👑 POST AT: {times[idx]} US | 7 hours Pakistan",
-        f"",
-        f"━━━" * 12,
-        f"TREND: {p['name']}",
-        f"",
-        f"👑 SEO PIN TITLE (copy this):",
-        f"{p['name']} - Pinterest Viral Fashion Style",
-        f"SEO DESCRIPTION:",
-        f"TRENDING {p['name']} on Pinterest! {p['analysis']} Perfect for creating viral pins! This is what everyone's pinning right now. GET IT BEFORE IT SELLS OUT!",
-        f"",
-        f"FEMINIST ANALYSIS:",
-        f"{p['analysis']}",
-        f"",
-        f"# 10 SEO HASHTAGS:"
-    ]
-    
-    for i, tag in enumerate(p['tags'], 1):
-        lines.append(f"{i}. #{tag}")
-    
-    lines += [
-        f"",
-        f"📌 PRICE: {p['price']}",
-        f"RATING: {p['rating']} {p['reviews']}",
-        f"SHIPPING: FREE US Shipping | 7-15 days",
-        f"VERIFIED: Ships to USA ✔️ | Link Working ✔️",
-        f"",
-        f"CLICK HERE TO BUY:",
-        f"{get_link(p['id'])}",
-    ]
-    
+    lines = [f"{get_date()} | {cats[idx]}", f"PRODUCT #{idx+1}", f"👑 POST AT: {times[idx]} US | 7 hours Pakistan", f"", f"━━━"*12, f"TREND: {p['name']}", f"", f"👑 SEO PIN TITLE:", f"{p['name']} - Pinterest Viral Fashion Style", f"SEO DESCRIPTION:", f"TRENDING {p['name']} on Pinterest! {p['analysis']} Perfect for viral pins!", f"", f"FEMINIST ANALYSIS:", f"{p['analysis']}", f"", f"# 10 SEO HASHTAGS:"]
+    for i, tag in enumerate(p['tags'], 1): lines.append(f"{i}. #{tag}")
+    lines += [f"", f"📌 PRICE: {p['price']}", f"RATING: {p['rating']} {p['reviews']}", f"SHIPPING: FREE US Shipping", f"VERIFIED: Ships to USA ✔️", f"", f"CLICK HERE TO BUY:", f"{get_link(p['id'])}"]
     return "\n".join(lines)
 
 def main():
     print(f"🕐 Agent - {get_date()} | {get_day().title()}")
     products = select_products()
     print(f"📦 {[p['name'] for p in products]}")
-    
     print(f"\n📤 Sending...")
     send(build_summary(products))
-    
     for i, p in enumerate(products):
         print(f"📤 Product {i+1}...")
         send(build_detail(p, i))
-    
     print(f"\n✅ DONE!")
 
 if __name__ == "__main__":
